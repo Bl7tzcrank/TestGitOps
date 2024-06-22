@@ -1,0 +1,21 @@
+name: Pre-Merge Minute Check
+
+on:
+  pull_request:
+    types: [synchronize, opened, reopened]
+
+jobs:
+  check-minute:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check if the current minute is an even number
+      run: |
+        minute=$(date +%M)
+        echo "Current minute: $minute"
+        if [ $((minute % 2)) -eq 0 ]; then
+          echo "Current minute is an even number."
+        else
+          echo "Current minute is an odd number. Aborting."
+          exit 1
+        fi
