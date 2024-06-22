@@ -5,6 +5,7 @@ on:
     types: [synchronize, opened, reopened]
 
 jobs:
+  name: Pre-Merge
   check-minute:
     runs-on: ubuntu-latest
 
