@@ -11,9 +11,11 @@ jobs:
     steps:
     - name: Check if server is available
       run: |
-        if curl --fail http://google.de; then
-          echo "Server is available."
-        else
-          echo "Server is unavailable. Aborting merge."
-          exit 1
-        fi
+          minute=$(date +%M)
+          echo "Current minute: $minute"
+          if [ $((minute % 2)) -eq 0 ]; then
+            echo "Current minute is an even number."
+          else
+            echo "Current minute is an odd number. Aborting."
+            exit 1
+          fi
