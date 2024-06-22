@@ -1,0 +1,19 @@
+name: Pre-Merge Deployment Server Check
+
+on: 
+  pull_request_target:
+    types: [labeled]
+
+jobs:
+  check-deployment-server:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check if server is available
+      run: |
+        if curl --fail http://google.de; then
+          echo "Server is available."
+        else
+          echo "Server is unavailable. Aborting merge."
+          exit 1
+        fi
