@@ -18,3 +18,4 @@ jobs:
         else
           echo "Current minute is an odd number. Aborting."
           exit 1
+        fi
