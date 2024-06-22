@@ -5,7 +5,9 @@ on:
     types: [synchronize, opened, reopened]
 
 jobs:
-  check-minute:
+  # This workflow contains a single job called "build"
+  build:
+    name: Precheck
     runs-on: ubuntu-latest
 
     steps:
