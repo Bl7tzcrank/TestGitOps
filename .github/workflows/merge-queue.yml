@@ -1,8 +1,8 @@
 name: Check Even Minute on PR Approval
 
 on:
-  pull_request_review:
-    types: [submitted]
+  pull_request_target:
+    types: [labeled]
 
 jobs:
   check-even-minute:
