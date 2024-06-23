@@ -7,6 +7,7 @@ on:
 jobs:
   check-even-minute:
     runs-on: ubuntu-latest
+    if: github.event.label.name == 'approved'
 
     steps:
       - name: Checkout repository
