@@ -1,18 +1,28 @@
-name: Validate code in the merge queue
+name: Check Even Minute on PR Approval
 
 on:
-  merge_group:
+  pull_request_review:
+    types: [submitted]
 
 jobs:
-  validate-pr:
+  check-even-minute:
     runs-on: ubuntu-latest
+    if: github.event.review.state == 'approved'
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Display info
-      run: | 
-        pwd
-        tree -a -I '.git'
-        git status
-    - name: Run slow CI (emulated by a long sleep)
-      run: sleep 60
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check even minute
+        run: |
+          for i in {1..10}
+          do
+            current_minute=$(date +'%M')
+            if [ $((10#$current_minute % 2)) -eq 0 ]; then
+              echo "The current minute ($current_minute) is even."
+              break
+            else
+              echo "The current minute ($current_minute) is odd."
+            fi
+            sleep 10
+          done
