@@ -1,43 +1,74 @@
-name: CI Approval and Merge
+name: Deploy on Pull Request
 
 on:
-  pull_request_target:
-    types: [labeled]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
-  check-even-minute-and-merge:
+  deploy:
     runs-on: ubuntu-latest
-    if: github.event.label.name == 'ci'
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install GitHub CLI
-        run: sudo apt-get install -y gh
-
-      - name: Authenticate with GitHub CLI
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Set up Git
         run: |
-          echo "${{ secrets.GH_TOKEN }}" | gh auth login --with-token
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Check even minute and merge PR
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Install dependencies
         run: |
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          for i in {1..10}
-          do
-            current_minute=$(date +'%M')
-            if [ $((10#$current_minute % 2)) -eq 0 ]; then
-              echo "The current minute ($current_minute) is even."
-              echo "Waiting for 10 more seconds..."
-              sleep 10
-              gh pr merge $PR_NUMBER --merge --admin
-              break
-            else
-              echo "The current minute ($current_minute) is odd."
-            fi
-            sleep 60
-          done
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Check for lock file
+        id: check-lock
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LOCK_FILE_URL="https://api.github.com/repos/${{ github.repository }}/contents/lockfile"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" $LOCK_FILE_URL)
+          if [ $HTTP_STATUS -eq 200 ]; then
+            echo "Lock file exists. Waiting..."
+            exit 1
+          fi
+
+      - name: Check for merge conflicts
+        id: check-conflicts
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "Merge conflict detected. Aborting deployment."
+            exit 1
+          fi
+
+      - name: Create lock file
+        id: create-lock
+        run: |
+          echo "Creating lock file..."
+          echo "Locked by $GITHUB_ACTOR at $(date)" > lockfile
+
+      - name: Push lock file to repository
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          git add lockfile
+          git commit -m "Create lock file"
+          git push https://${PAT}@github.com/${{ github.repository }}.git HEAD:main
+
+      - name: Deploy code
+        run: |
+          # Your deployment commands here
+          echo "Deploying to server..."
+
+      - name: Remove lock file
+        if: always()
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          echo "Removing lock file..."
+          rm lockfile
+          git add -u
+          git commit -m "Remove lock file"
+          git push https://${PAT}@github.com/${{ github.repository }}.git HEAD:main
