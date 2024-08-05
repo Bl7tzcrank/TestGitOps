@@ -34,17 +34,35 @@ jobs:
             exit 1
           fi
 
+      - name: Check for merge conflicts
+        id: check-conflicts
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "Merge conflict detected. Aborting deployment."
+            exit 1
+          fi
+
       - name: Create lock file
         id: create-lock
         run: |
           echo "Creating lock file..."
           echo "Locked by $GITHUB_ACTOR at $(date)" > lockfile
 
+      - name: Debugging: Show git remote
+        run: |
+          git remote -v
+
+      - name: Debugging: Show PAT usage
+        run: |
+          echo "Using PAT for push operations"
+          git remote set-url origin https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git
+          git remote -v
+
       - name: Push lock file to repository
         env:
           PAT: ${{ secrets.PAT }}
         run: |
-          git remote set-url origin https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git
           git add lockfile
           git commit -m "Create lock file"
           git push origin HEAD:main
