@@ -49,13 +49,23 @@ jobs:
           echo "Creating lock file..."
           echo "Locked by $GITHUB_ACTOR at $(date)" > lockfile
 
+      - name: Debugging: Show git remote
+        run: |
+          git remote -v
+
+      - name: Debugging: Show PAT usage
+        run: |
+          echo "Using PAT for push operations"
+          git remote set-url origin https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git
+          git remote -v
+
       - name: Push lock file to repository
         env:
           PAT: ${{ secrets.PAT }}
         run: |
           git add lockfile
           git commit -m "Create lock file"
-          git push https://${PAT}@github.com/${{ github.repository }}.git HEAD:main
+          git push origin HEAD:main
 
       - name: Deploy code
         run: |
@@ -71,4 +81,4 @@ jobs:
           rm lockfile
           git add -u
           git commit -m "Remove lock file"
-          git push https://${PAT}@github.com/${{ github.repository }}.git HEAD:main
+          git push origin HEAD:main
