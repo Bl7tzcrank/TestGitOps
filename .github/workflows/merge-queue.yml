@@ -44,9 +44,10 @@ jobs:
         env:
           PAT: ${{ secrets.PAT }}
         run: |
+          git remote set-url origin https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git
           git add lockfile
           git commit -m "Create lock file"
-          git push https://${PAT}@github.com/${{ github.repository }}.git HEAD:main
+          git push origin HEAD:main
 
       - name: Deploy code
         run: |
@@ -62,4 +63,4 @@ jobs:
           rm lockfile
           git add -u
           git commit -m "Remove lock file"
-          git push https://${PAT}@github.com/${{ github.repository }}.git HEAD:main
+          git push origin HEAD:main
