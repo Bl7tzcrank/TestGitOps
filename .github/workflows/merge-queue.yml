@@ -40,6 +40,12 @@ jobs:
           echo "Creating lock file..."
           echo "Locked by $GITHUB_ACTOR at $(date)" > lockfile
 
+      - name: Pull latest changes
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          git pull origin main
+
       - name: Push lock file to repository
         env:
           PAT: ${{ secrets.PAT }}
