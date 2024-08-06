@@ -27,4 +27,4 @@ jobs:
 
       - name: Print comment body
         if: ${{ env.DEPLOYMENT_COMMENT_DETECTED == 'true' }}
-        run: echo "Deployment comment detected in PR: ${{ github.event.issue.number }}"
+        run: echo "Deployment comment detected in PR"
