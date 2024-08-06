@@ -15,4 +15,4 @@ jobs:
 
       - name: Check for deployment comment
         if: contains(github.event.comment.body, '.deploy')
-        run: echo "Deployment comment detected in PR: ${{ github.event.issue.number }}"
+        run: echo "Deployment comment detected"
