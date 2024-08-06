@@ -1,8 +1,8 @@
 name: Deploy on Pull Request
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  issue_comment:
+    types: [created]
 
 jobs:
   deploy:
@@ -22,51 +22,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
 
-      - name: Check for lock file
-        id: check-lock
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          LOCK_FILE_URL="https://api.github.com/repos/${{ github.repository }}/contents/lockfile"
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: token $GITHUB_TOKEN" $LOCK_FILE_URL)
-          if [ $HTTP_STATUS -eq 200 ]; then
-            echo "Lock file exists. Waiting..."
-            exit 1
-          fi
-
-      - name: Create lock file
-        id: create-lock
-        run: |
-          echo "Creating lock file..."
-          echo "Locked by $GITHUB_ACTOR at $(date)" > lockfile
-
-      - name: Pull latest changes
-        env:
-          PAT: ${{ secrets.PAT }}
-        run: |
-          git pull origin main
-
-      - name: Push lock file to repository
-        env:
-          PAT: ${{ secrets.PAT }}
-        run: |
-          git remote set-url origin https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git
-          git add lockfile
-          git commit -m "Create lock file"
-          git push origin HEAD:main
-
-      - name: Deploy code
-        run: |
-          # Your deployment commands here
-          echo "Deploying to server..."
-
-      - name: Remove lock file
-        if: always()
-        env:
-          PAT: ${{ secrets.PAT }}
-        run: |
-          echo "Removing lock file..."
-          rm lockfile
-          git add -u
-          git commit -m "Remove lock file"
-          git push origin HEAD:main
+      - name: Check comment body
+        if: contains(github.event.comment.body, '.deploy')
+        run: echo "Deployment comment detected: ${GITHUB_EVENT_PATH}"
