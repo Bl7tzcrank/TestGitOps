@@ -1,5 +1,6 @@
 import os
 import json
+from github import Github
 
 def main():
     # Load the GitHub event payload
