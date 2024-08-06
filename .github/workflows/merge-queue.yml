@@ -1,27 +1,15 @@
-name: Deploy on Pull Request
+name: PR Comment Deploy Trigger
 
 on:
   issue_comment:
     types: [created]
 
 jobs:
-  deploy:
+  check-comment:
+    if: ${{ github.event.issue.pull_request }} # Ensure it runs only on PR comments
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
-
       - name: Check comment body
         if: contains(github.event.comment.body, '.deploy')
-        run: echo "Deployment comment detected: ${GITHUB_EVENT_PATH}"
+        run: echo "Deployment comment detected in PR: ${GITHUB_EVENT_PATH}"
